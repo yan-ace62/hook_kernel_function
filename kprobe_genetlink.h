@@ -22,3 +22,5 @@ enum {
 #define HOOK_A_MAX (__HOOK_A_MAX - 1)
 
 int send_netlink_msg(void *buf, int size, int portid, int seq, int cmd, int attr);
+int kprobe_netlink_init(void);
+int kprobe_netlink_exit(void);

@@ -1,9 +1,12 @@
-#include <linux/module.h>
 #include <linux/kernel.h>
+#include <linux/module.h>
 #include <linux/kthread.h>
 #include <linux/sched.h>
 
+#include "kprobe_genetlink.h"
+#include "probe_common.h"
 
+extern int kprobe_thread(void *unused);
 
 struct task_struct *thread_id = NULL;
 struct kprobe_queue kprobe_log_queue;
@@ -23,7 +26,7 @@ static int __init kprobe_init(void)
 
         thread_id = kthread_create(kprobe_thread, NULL, "hook_function");
 
-        if (thread_id = NULL) {
+        if (thread_id == NULL) {
                 printk("Create kthread error\n");
                 return -1;
         }
@@ -39,7 +42,7 @@ static void __exit kprobe_exit(void)
         ret = kprobe_netlink_exit();
 
         ret = kthread_stop(thread_id);
-        queue_destroy(kprobe_log_queue);
+        queue_destroy(&kprobe_log_queue);
 
         return;
 }

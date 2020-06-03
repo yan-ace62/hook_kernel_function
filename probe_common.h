@@ -2,6 +2,7 @@
 #include <linux/sched.h>
 #include <linux/spinlock.h>
 #include <linux/list.h>
+#include <linux/slab.h>
 
 enum probe_type {
         PROBE_HOOK_FUNC,
@@ -31,7 +32,7 @@ void kprobe_queue_put(kprobe_queue_t *queue, hook_data_t *data)
 
 hook_data_t *kprobe_queue_get(kprobe_queue_t *queue)
 {
-        struct hook_data_t *ret == NULL;
+        hook_data_t *ret = NULL;
 
         spin_lock(&queue->lock);
         if (!list_empty(&queue->head)) {
@@ -57,7 +58,7 @@ bool queue_is_empty(kprobe_queue_t *queue)
 
 void queue_init(kprobe_queue_t *queue)
 {
-        spin_lock_init(queue->lock);
+        spin_lock_init(&queue->lock);
         queue->count = 0;
         INIT_LIST_HEAD(&queue->head);
         return;

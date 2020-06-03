@@ -117,8 +117,8 @@ int kprobe_netlink_init(void)
 	}
 }
 
-void kprobe_netlink_exit(void)
+int kprobe_netlink_exit(void)
 {
-	genl_unregister_family(&family);
+	return genl_unregister_family(&family);
 }
 
