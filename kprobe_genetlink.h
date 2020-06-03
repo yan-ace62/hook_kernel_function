@@ -1,3 +1,6 @@
+#ifndef __KPROBE_GENETLINK_H
+#define __KPROBE_GENETLINK_H
+
 #include <linux/sched.h>
 
 #define LOG_SIZE (9 + TASK_COMM_LEN)
@@ -24,3 +27,5 @@ enum {
 int send_netlink_msg(void *buf, int size, int portid, int seq, int cmd, int attr);
 int kprobe_netlink_init(void);
 int kprobe_netlink_exit(void);
+
+#endif

@@ -1,3 +1,6 @@
+#ifndef _PROBE_COMMON_H
+#define _PROBE_COMMON_H
+
 #include <linux/ktime.h>
 #include <linux/sched.h>
 #include <linux/spinlock.h>
@@ -22,7 +25,7 @@ typedef struct kprobe_queue {
         struct list_head head;
 }kprobe_queue_t;
 
-void kprobe_queue_put(kprobe_queue_t *queue, hook_data_t *data)
+static inline void kprobe_queue_put(kprobe_queue_t *queue, hook_data_t *data)
 {
         spin_lock(&queue->lock);
         list_add_tail(&queue->head, &data->node);
@@ -30,7 +33,7 @@ void kprobe_queue_put(kprobe_queue_t *queue, hook_data_t *data)
         spin_unlock(&queue->lock);
 }
 
-hook_data_t *kprobe_queue_get(kprobe_queue_t *queue)
+static inline hook_data_t *kprobe_queue_get(kprobe_queue_t *queue)
 {
         hook_data_t *ret = NULL;
 
@@ -44,7 +47,7 @@ hook_data_t *kprobe_queue_get(kprobe_queue_t *queue)
         return ret;
 }
 
-bool queue_is_empty(kprobe_queue_t *queue)
+static inline bool queue_is_empty(kprobe_queue_t *queue)
 {
         bool ret = false;
         spin_lock(&queue->lock);
@@ -56,7 +59,7 @@ bool queue_is_empty(kprobe_queue_t *queue)
         return ret;
 }
 
-void queue_init(kprobe_queue_t *queue)
+static inline void queue_init(kprobe_queue_t *queue)
 {
         spin_lock_init(&queue->lock);
         queue->count = 0;
@@ -64,7 +67,7 @@ void queue_init(kprobe_queue_t *queue)
         return;
 }
 
-void queue_destroy(kprobe_queue_t *queue)
+static inline void queue_destroy(kprobe_queue_t *queue)
 {
         struct hook_data *pos, *n;
 
@@ -73,3 +76,5 @@ void queue_destroy(kprobe_queue_t *queue)
         }
         return;
 }
+
+#endif

@@ -6,10 +6,15 @@
 #include "kprobe_genetlink.h"
 #include "probe_common.h"
 
+MODULE_LICENSE("GPL");
+
 extern int kprobe_thread(void *unused);
+extern s32 user_portid;
+
 
 struct task_struct *thread_id = NULL;
 struct kprobe_queue kprobe_log_queue;
+
 
 static int __init kprobe_init(void)
 {

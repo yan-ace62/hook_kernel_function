@@ -3,10 +3,11 @@
 
 #include "kprobe_genetlink.h"
 
-u32 user_portid = -1;
+extern s32 user_portid;
+extern int do_kprobe_register(char func_name[]);
+extern int do_kprobe_unregister(char func_name[]);
 
-#define LOG_SIZE (18 + TASK_COMM_LEN)
-static const struct nla_policy policy[CSNETLINK_A_MAX+1] = {
+static const struct nla_policy policy[HOOK_A_MAX+1] = {
 	[HOOK_A_FUNC_NAME] = { .type=NLA_NUL_STRING, .len = 52, },
 	[HOOK_A_LOG] = { .type=NLA_STRING, .len = LOG_SIZE, },
 };
@@ -45,11 +46,12 @@ extern struct net init_net;
 /* buff */
 int send_netlink_msg(void *buf, int size, int portid, int seq, int cmd, int attr)
 {
+	void *msg_head;
 	struct sk_buff *skb = genlmsg_new(NLMSG_GOODSIZE, GFP_KERNEL);
 	if (!skb)
                 return -ENOMEM;
 
-	void *msg_head = genlmsg_put(skb, 0, seq, &family, 0, cmd);
+	msg_head = genlmsg_put(skb, 0, seq, &family, 0, cmd);
 	if (!msg_head) {
 		kfree_skb(skb);
 		return -ENOMEM;
@@ -64,45 +66,55 @@ static int do_hook_register(struct sk_buff *skb, struct genl_info *info)
 {
         int index = 0, ret;
         u16 type;
-        struct nlattr *nla, *head;
+        struct nlattr *nla, **head;
         char func_name[52] = {0,};
         
-        if (head && *(head + index)) {
-                nla = head + index;
-                type = nla_type(nla);
-                if (type == HOOK_A_FUNC_NAME) {
-                        /* Parse function name  */
-                        ret = do_kprobe_register(func_name);
+	head = info->attrs;
 
-                        if (ret) {
-                                printk("Kprobe register error\n");
-                        }
-                }
-        }
+	for (; index < HOOK_A_MAX; index++) {
+		if (*(head + index) != NULL) {
+			nla = head[index];
+			type = nla_type(nla);
+                	if (type == HOOK_A_FUNC_NAME) {
+                	        /* Parse function name  */
+                	        ret = do_kprobe_register(func_name);
+
+                	        if (ret) {
+                	                printk("Kprobe register error\n");
+                	        }
+                	}
+		}
+	}
+
 
         return 0;
 }
 
 static int do_hook_unregister(struct sk_buff *skb, struct genl_info *info)
 {
-        int index = 0, ret;
+        int index = 0;
         u16 type;
-        struct nlattr *nla, *head;
+        struct nlattr *nla, **head;
         char func_name[52] = {0,};
         
-        if (head && *(head + index)) {
-                nla = head + index;
-                type = nla_type(nla);
-                if (type == HOOK_A_FUNC_NAME) {
-                        /* Parse function name  */
-                        ret = do_kprobe_unregister(func_name);
 
-                        if (ret) {
-                                printk("Kprobe register error\n");
-                        }
-                }
-        }
+	head = info->attrs;
 
+	for (; index < HOOK_A_MAX; index++) {
+		if (*(head + index) != NULL) {
+			nla = head[index];
+			type = nla_type(nla);
+                	if (type == HOOK_A_FUNC_NAME) {
+                	        /* Parse function name  */
+
+                	        do_kprobe_unregister(func_name);
+
+                	        printk("%s: Kprobe unregister error\n", func_name);
+                	}
+		}
+	}
+
+	return 0;
 }
 
 int kprobe_netlink_init(void)
