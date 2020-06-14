@@ -47,11 +47,16 @@ static inline hook_data_t *kprobe_queue_get(kprobe_queue_t *queue)
         return ret;
 }
 
-static inline bool queue_is_empty(kprobe_queue_t *queue)
+static inline int kprobe_queue_number(kprobe_queue_t *queue)
+{
+        return queue->count;
+}
+
+static inline bool kprobe_queue_is_empty(kprobe_queue_t *queue)
 {
         bool ret = false;
         spin_lock(&queue->lock);
-        if (&queue->count == 0) {
+        if (queue->count == 0) {
                 ret = true;
         }
         spin_unlock(&queue->lock);
@@ -59,7 +64,7 @@ static inline bool queue_is_empty(kprobe_queue_t *queue)
         return ret;
 }
 
-static inline void queue_init(kprobe_queue_t *queue)
+static inline void kprobe_queue_init(kprobe_queue_t *queue)
 {
         spin_lock_init(&queue->lock);
         queue->count = 0;
@@ -67,13 +72,16 @@ static inline void queue_init(kprobe_queue_t *queue)
         return;
 }
 
-static inline void queue_destroy(kprobe_queue_t *queue)
+static inline void kprobe_queue_destroy(kprobe_queue_t *queue)
 {
         struct hook_data *pos, *n;
 
-        list_for_each_entry_safe(pos, n, &queue->head, node) {
-                kfree(pos);
+        if (queue->count != 0) {
+                list_for_each_entry_safe(pos, n, &queue->head, node) {
+                        kfree(pos);
+                }
         }
+
         return;
 }
 

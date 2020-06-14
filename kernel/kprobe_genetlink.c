@@ -64,56 +64,36 @@ int send_netlink_msg(void *buf, int size, int portid, int seq, int cmd, int attr
 
 static int do_hook_register(struct sk_buff *skb, struct genl_info *info)
 {
-        int index = 0, ret;
-        u16 type;
-        struct nlattr *nla, **head;
+        int ret;
+        struct nlattr *nla;
         char func_name[52] = {0,};
-        
-	head = info->attrs;
 
-	for (; index < HOOK_A_MAX; index++) {
-		if (*(head + index) != NULL) {
-			nla = head[index];
-			type = nla_type(nla);
-                	if (type == HOOK_A_FUNC_NAME) {
-                	        /* Parse function name  */
-                	        ret = do_kprobe_register(func_name);
+	
 
-                	        if (ret) {
-                	                printk("Kprobe register error\n");
-                	        }
-                	}
-		}
+	if (info->attrs[HOOK_A_FUNC_NAME]) {
+		nla = info->attrs[HOOK_A_FUNC_NAME];
+		memcpy(func_name, nla_data(nla), nla_len(nla));
+		ret = do_kprobe_register(func_name);
+
+                if (ret) {
+                        printk("Kprobe register error\n");
+                }
 	}
-
 
         return 0;
 }
 
 static int do_hook_unregister(struct sk_buff *skb, struct genl_info *info)
 {
-        int index = 0;
-        u16 type;
-        struct nlattr *nla, **head;
+        struct nlattr *nla;
         char func_name[52] = {0,};
-        
 
-	head = info->attrs;
-
-	for (; index < HOOK_A_MAX; index++) {
-		if (*(head + index) != NULL) {
-			nla = head[index];
-			type = nla_type(nla);
-                	if (type == HOOK_A_FUNC_NAME) {
-                	        /* Parse function name  */
-
-                	        do_kprobe_unregister(func_name);
-
-                	        printk("%s: Kprobe unregister error\n", func_name);
-                	}
-		}
+	if (info->attrs[HOOK_A_FUNC_NAME]) {
+		nla = info->attrs[HOOK_A_FUNC_NAME];
+		memcpy(func_name, nla_data(nla), nla_len(nla));
+                do_kprobe_unregister(func_name);
 	}
-
+        
 	return 0;
 }
 
@@ -121,16 +101,25 @@ int kprobe_netlink_init(void)
 {
 	int rc = genl_register_family(&family);
 	if (rc == 0){
-		printk("csnetlink is loaded.\n");
-		return 0;
+		printk("kprobenetlink family register successed.\n");
 	}else{
-		printk("csnetlink isn't loaded.\n");
-		return rc;
+		printk("kprobenetlink family register error.\n");
 	}
+
+	return rc;
 }
 
 int kprobe_netlink_exit(void)
 {
-	return genl_unregister_family(&family);
+	int ret;
+	ret = genl_unregister_family(&family);
+
+	if (ret) {
+		printk("unregister netlink family error\n");
+	} else {
+		printk("unregister netlink family success\n");
+	}
+
+	return ret;
 }
 

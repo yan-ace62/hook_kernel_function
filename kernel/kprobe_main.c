@@ -12,7 +12,7 @@ MODULE_LICENSE("GPL");
 extern int kprobe_thread(void *unused);
 extern s32 user_portid;
 
-struct kmem_cache *hook_data_cache;
+struct kmem_cache *hook_data_cache = NULL;
 EXPORT_SYMBOL_GPL(hook_data_cache);
 struct task_struct *thread_id = NULL;
 struct kprobe_queue kprobe_log_queue;
@@ -34,18 +34,20 @@ static int __init kprobe_init(void)
                                             sizeof(hook_data_t),
                                             0, 0, NULL);
 
-        queue_init(&kprobe_log_queue);
+        kprobe_queue_init(&kprobe_log_queue);
 
-        thread_id = kthread_create(kprobe_thread, NULL, "hook_function");
+        printk("start create kthread before");
+        thread_id = kthread_run(kprobe_thread, NULL, "hook_function");
+        printk("start create kthread after: %p", thread_id);
 
-        if (thread_id == NULL) {
+        if (IS_ERR(thread_id)) {
                 printk("Create kthread error\n");
                 return -1;
         }
+        printk("Kprobe module init\n");
 
         return 0;
 }
-
 
 static void __exit kprobe_exit(void)
 {
@@ -54,7 +56,10 @@ static void __exit kprobe_exit(void)
         ret = kprobe_netlink_exit();
 
         ret = kthread_stop(thread_id);
-        queue_destroy(&kprobe_log_queue);
+        kprobe_queue_destroy(&kprobe_log_queue);
+        printk("start create kthread after: %p", thread_id);
+
+        printk("Kprobe module exit\n");
 
         return;
 }

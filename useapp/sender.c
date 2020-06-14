@@ -18,65 +18,6 @@ struct resp_buffer {
     int pos;
 };
 
-/*
-const char *
-http_code_strerr(int code)
-{
-    switch (code)
-    {   //http 常见错误码
-        case 400: return "400 Bad Request";
-        case 401: return "401 Unauthorized";
-        case 403: return "403 Forbidden";
-        case 404: return "404 Not Found";
-        case 500: return "500 Internal Server Error";
-        case 502: return "502 Bad Gateway";
-        case 503: return "503 Service Unavailable";
-        case 504: return "504 Gateway Timeout";
-        case 505: return "505 HTTP Version Not Supported";
-        default : 
-            switch (code/100)
-            {
-                case 1:	return "http informational status";
-                case 2:	return "http other success status";
-                case 3:	return "http redirection status";
-                case 4:	return "http other client error"; 
-                case 5:	return "http other server error";
-                default : return "http unknow error code";
-            }
-    }
-}
-
-const char * 
-server_resp_parser(const char *resp)
-{
-    const char *ret = NULL;
-    cJSON *json = NULL;
-    cJSON *item = NULL;
-    if (NULL == (json = cJSON_Parse(resp))) 
-    {
-        return "server response unparse error";
-    }
-    if (NULL == (item = cJSON_GetObjectItem(json, "code")) || !cJSON_IsNumber(item) )
-    {
-        printf("server resp:%s\n", resp);
-        ret = "server response format invalid";
-    } else 
-    {
-        switch (item->valueint)
-        {
-            case 200: break;  // success
-            case 2006: ret = "user not loggin"; break;
-            case 1005: ret = "request parameter error"; break;
-            case 1001: ret = "server internal error"; break;
-            default: ret = "server unknow error";
-        }
-    }
-
-    cJSON_Delete(json);
-    return ret;
-}
-*/
-
 static size_t
 receive_callback(void *contents, size_t size, size_t nmemb, void *userp)
 {
